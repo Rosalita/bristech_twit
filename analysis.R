@@ -317,21 +317,19 @@ worddf[1030,1]
 #tweet containing the longest word
 confdaytweets[113,1]
 
-popularwordindex <- which(worddf$Freq > 7)
+popularwordindex <- which(worddf$Freq > 10)
 
 popularwords <- worddf[popularwordindex,]
-#orderby Freq
-newdata <- popularwords[order(popularwords$Freq),] 
 
+levels(worddf$Freq)
 
 #plot word frequency
-ggplot(newdata, aes(x=words,y=Freq)) +
+p <- ggplot(popularwords, aes(x=reorder(words, Freq),y=Freq, fill=Freq)) +
   geom_bar(stat="identity")+  
   coord_flip() 
 #ggtitle("Strategies for Using Homework Solution and Mini-Lecture Screencasts")
 
-
-
+p
 
 # The main structure for managing text is tm package is a corpus. 
 # A Corpus represents a collection of text documents.
