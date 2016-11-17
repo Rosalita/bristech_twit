@@ -174,6 +174,10 @@ library(wordcloud)
 # extract just the tweet text 
 textdata <- confdaytweets$text
 
+test<- grep("nospaces", confdaytweets$text)
+
+
+
 #check encoding
 Encoding(textdata) # mixture of all kinds of encoding
 
@@ -245,12 +249,8 @@ textdata = gsub('[[:punct:]]', '', textdata)  # strips out punctuation
 textdata = gsub('[[:cntrl:]]', ' ', textdata)  # strips out control characters, like \n or \r 
 textdata = gsub('\\d+', '', textdata)         # strips out numbers
 
-#Look at a sample of tweets to see if any more cleaning is needed
 
 textdata = gsub("RT", " ", textdata) #remove any instances of "RT" as this isn't a real word
-
-
-
 
 # there are some orphaned "s" on their own created previous cleanings
 textdata = gsub("^s\\s", " ", textdata) #remove any single "s" followed by a space,
@@ -258,21 +258,16 @@ textdata = gsub("^s\\s", " ", textdata) #remove any single "s" followed by a spa
 #strip out remains of links
 textdata = gsub('ht(\\w{1,60})\\b', '', textdata) #remove any words between 1 and 60 chars starting with "ht"
 
-
-textdata[617] # emoji residue edUAUBCedUBUACedUAUBCedUBUA
-textdata[647] # emojii residue edUAUBDedUBUDedUAUBCedUBFUBB
-textdata[477] # more emojii residue edUAUBDedUBUA & edUAUBDedUBUU
-
 #strip out emoji residue, anything starting with edUAU
-textdata = gsub('edUAU(\\w{1,60})\\b', '', textdata) #remove any words upto 60 chars long starting "edUAU"
+#This cleans up leftovers like edUAUBDedUBUA, edUAUBDedUBUU and edUAUBDedUBUDedUAUBCedUBFUBB
+textdata = gsub('edUAU(\\w{1,130})\\b', '', textdata) #remove any words upto 130 chars long starting "edUAU"
 
 
 # convert textdata to dataframe so can transfer it to corpus later
 textdataframe <- as.data.frame(textdata)
 
-
 # now convert all tweet text to vector so can split it up on each word
-vectortext <- as.character(textdata[,1])
+vectortext <- as.character(textdataframe[,1])
 
 # convert text in the vector to all lowercase
 vectortext <- tolower(vectortext)
@@ -281,6 +276,61 @@ vectortext <- tolower(vectortext)
 words <- unlist(strsplit(vectortext, " "))
 
 # to do remove blanks "" and plot a barchart of words
+
+# remove blank ""'s in the vector of words
+words <- words[words != ""]
+
+#total up the words in a table
+wordtable <- table(words)
+
+#store totals in a data frame
+worddf <- as.data.frame(wordtable, stringsAsFactors=FALSE)
+
+
+
+#remove stop words
+#read in a list of stop words
+stopwords <- read_file("stop-words.txt", locale = default_locale())
+#clean up control chars
+stopwords = gsub('[[:cntrl:]]', ' ',stopwords)  # replace control characters, like \n or \r with a space 
+# split the stopwords up into a vector of words
+stopwords <- unlist(strsplit(stopwords, " "))
+# remove blank ""'s
+stopwords <- stopwords[stopwords != ""]
+
+#make an index of stopwords which are in the words dataframe
+index <- which(worddf[,1] %in% stopwords)
+
+#remove the stopwords from the words dataframe
+worddf <- worddf[-index,]
+
+#re-index
+row.names(worddf) <- 1:nrow(worddf)
+
+#correct micro$oft as the $ got stripped out
+worddf[635,1] <- "micro$oft"
+
+
+#hmmm
+#looking at the worddf the longest word tweeted was
+worddf[1030,1]
+#tweet containing the longest word
+confdaytweets[113,1]
+
+popularwordindex <- which(worddf$Freq > 7)
+
+popularwords <- worddf[popularwordindex,]
+#orderby Freq
+newdata <- popularwords[order(popularwords$Freq),] 
+
+
+#plot word frequency
+ggplot(newdata, aes(x=words,y=Freq)) +
+  geom_bar(stat="identity")+  
+  coord_flip() 
+#ggtitle("Strategies for Using Homework Solution and Mini-Lecture Screencasts")
+
+
 
 
 # The main structure for managing text is tm package is a corpus. 
