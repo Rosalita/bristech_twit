@@ -255,8 +255,8 @@ textdata = gsub("RT", " ", textdata) #remove any instances of "RT" as this isn't
 # there are some orphaned "s" on their own created previous cleanings
 textdata = gsub("^s\\s", " ", textdata) #remove any single "s" followed by a space,
 
-#strip out remains of links
-textdata = gsub('ht(\\w{1,60})\\b', '', textdata) #remove any words between 1 and 60 chars starting with "ht"
+#strip out remains of links - commented out because fear this turned word 'delight' into delig'
+# textdata = gsub('ht(\\w{1,60})\\b', '', textdata) #remove any words between 1 and 60 chars starting with "ht"
 
 #strip out emoji residue, anything starting with edUAU
 #This cleans up leftovers like edUAUBDedUBUA, edUAUBDedUBUU and edUAUBDedUBUDedUAUBCedUBFUBB
@@ -307,29 +307,78 @@ worddf <- worddf[-index,]
 #re-index
 row.names(worddf) <- 1:nrow(worddf)
 
+
+
+# rows 476 - 673 are all partial link text so discard these values
+index <- 476:673
+worddf <- worddf[-index,]
+#relabel rows
+row.names(worddf) <- 1:nrow(worddf)
+
 #correct micro$oft as the $ got stripped out
-worddf[635,1] <- "micro$oft"
+worddf[634,1] <- "micro$ofts"
 
 
 #hmmm
 #looking at the worddf the longest word tweeted was
-worddf[1030,1]
+worddf[1028,1]
 #tweet containing the longest word
 confdaytweets[113,1]
 
-popularwordindex <- which(worddf$Freq > 10)
+# Now score each word on whether it is positive or negative.
 
-popularwords <- worddf[popularwordindex,]
+library(plyr)
+# ddply() takes a dataframe, does stuff to it, returns a dataframe
 
-levels(worddf$Freq)
+# Score all the words and output as dataframe
+scoredwords <- ddply(worddf, "words", function(x) {
+  wordtocheck <- x$words
+  # compare the word to check to the dictionaries of positive & negative terms
+  pos.match = match(wordtocheck, good_text)
+  neg.match = match(wordtocheck, bad_text)
+
+  # match() returns the position of the matched term or NA
+  # convert matches to TRUE/FALSE instead
+  pos.match = !is.na(pos.match)
+  neg.match = !is.na(neg.match)
+  
+  # TRUE/FALSE is treated as 1/0 by sum(), so add up the score
+  score = sum(pos.match) - sum(neg.match)
+  
+  })
+
+
+# bind the word frequencies onto this dataframe
+scoredwords <- cbind(scoredwords, worddf$Freq)
+
+# tidy up column names on this new dataframe to sentiment, -1 is negative, 0 is neutral, +1 is positive
+colnames(scoredwords) <- c("words", "sentiment", "freq")
+
+# sentiment is currently stored as an int which is continuous data type
+# for plotting purposes, change it to char which is discrete 
+scoredwords$sentiment <- as.character(scoredwords$sentiment)
+
+#find the popular words
+popularwordindex <- which(scoredwords$freq > 5)
+
+popularwords <- scoredwords[popularwordindex,]
 
 #plot word frequency
-p <- ggplot(popularwords, aes(x=reorder(words, Freq),y=Freq, fill=Freq)) +
+p <- ggplot(popularwords, aes(x=reorder(words, -freq),y=freq, fill=popularwords$sentiment )) +
   geom_bar(stat="identity")+  
-  coord_flip() 
+  labs(x="Popular Words (5+ mentions)", y="Frequency", fill="Sentiment")+
+ # scale_x_discrete(trans ="reverse")+
+  scale_fill_manual(breaks = c("-1", "0", "1"),
+                    labels = c("Negative", "Neutral", "Positive"),
+                    values = c("#E69F00", "#56B4E9", "#009E73"),
+                    limits = c(-1, 0, 1))+   
+  ggtitle("Tweeted Words by Frequency and Sentiment")
+ # coord_flip()
 #ggtitle("Strategies for Using Homework Solution and Mini-Lecture Screencasts")
 
-p
+p +  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))
+
+
 
 # The main structure for managing text is tm package is a corpus. 
 # A Corpus represents a collection of text documents.
