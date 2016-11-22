@@ -588,7 +588,6 @@ clique
 clog
 clogged
 clogs
-cloud
 clouding
 cloudy
 clueless
@@ -3226,6 +3225,8 @@ paradoxical
 paradoxically
 paralize
 paralyzed
+paralysed
+paralysis
 paranoia
 paranoid
 parasite

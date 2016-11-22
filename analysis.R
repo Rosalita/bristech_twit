@@ -60,7 +60,6 @@ setwd("C:/Dev/git/bristech_twit")
 # load dataframe object containing tweets to perform analysis on
 bristweets <- readRDS("bristweets.Rda")
 
-
 # Conference day was 03-11-2016 so create a subset of conference day tweets
 #separate out the date from the tweet creation time stamp
 justdate <- as.Date(bristweets$created)
@@ -97,85 +96,9 @@ bad.list = str_split(bad, '\\s+')   # split into a list of words
 bad_text = unlist(bad.list)         # make sure words is a vector, not a list
 bad_text = bad_text[1:(length(bad_text) -1)] # the last item appears to be "", so just trim it off
 
-# initialise some global variables
-positivity <- NULL
-negativity <- NULL
-
-# Now score the text of each tweet based on count of positive and negative words used.
-
-score.sentiment = function(sentences, good_text, bad_text, .progress='none')
-{
-  require(plyr)
-  require(stringr)
-  # we got a vector of sentences. plyr will handle a list
-  # or a vector as an "l" for us
-  # we want a simple array of scores back, so we use
-  # "l" + "a" + "ply" = "laply":
-  scores = laply(sentences, function(sentence, good_text, bad_text) {
-    
-    # clean up each sentence with R's regex-driven global substitute, gsub():
-    sentence = gsub('[[:punct:]]', '', sentence)  # strips out punctuation
-    sentence = gsub('[[:cntrl:]]', '', sentence)  # strips out control characters, like \n or \r 
-    sentence = gsub('\\d+', '', sentence)         # strips out numbers
-    sentence <- iconv(sentence, to='UTF-8')       # convert to UTF8
-    sentence = tolower(sentence)                  # converts all text to lower case     
-    word.list = str_split(sentence, '\\s+')       # split into a list of words
-    words = unlist(word.list)                     # make sure words is a vector, not a list
-    
-    # compare our words to the dictionaries of positive & negative terms
-    pos.matches = match(words, good_text)
-    neg.matches = match(words, bad_text)
-    
-    # match() returns the position of the matched term or NA
-    # convert matches to TRUE/FALSE instead
-    pos.matches = !is.na(pos.matches)
-    neg.matches = !is.na(neg.matches)
-    
-    # TRUE/FALSE is treated as 1/0 by sum(), so add up the score
-    score = sum(pos.matches) - sum(neg.matches)
-    
-    #if any positive matches
-    if (any(pos.matches)){
-      pos.matches = match(words, good_text)
-      pos.words = good_text[pos.matches] # apply index of pos matches to get pos words
-      pos.words = pos.words[!is.na(pos.words)] # remove any NA values
-      # append positive words to global positivity variable
-      positivity <<- append(positivity, pos.words)
-    }
-    
-    # identify the words which matched positively or negatively
-    # maybe use <<- to set pos.words and neg.words as global variables?
-    if (any(neg.matches)){
-      neg.matches = match(words, bad_text)
-      neg.words = bad_text[neg.matches] # apply index of neg matches to get neg words
-      neg.words = neg.words[!is.na(neg.words)] # remove any NA values 
-      #append negative words to global negativity variable
-      negativity <<- append(negativity, neg.words)
-    }
-    
-    return(score)
-  }, good_text, bad_text, .progress=.progress )
-  
-  scores.df = data.frame(score=scores, text=sentences)
-  return(scores.df)
-}
-
-# call the score sentiment function and return a data frame
-feelings <- score.sentiment(tweettext, good_text, bad_text, .progress='text')
-
-sentiment_score <- feelings$score
-
-# bind the sentiment scores onto the tweet dataframe
-confdaytweets <- cbind(confdaytweets,sentiment_score)
-
-library(tm)
-library(wordcloud)
 
 # extract just the tweet text 
 textdata <- confdaytweets$text
-
-test<- grep("nospaces", confdaytweets$text)
-
 
 
 #check encoding
@@ -249,7 +172,6 @@ textdata = gsub('[[:punct:]]', '', textdata)  # strips out punctuation
 textdata = gsub('[[:cntrl:]]', ' ', textdata)  # strips out control characters, like \n or \r 
 textdata = gsub('\\d+', '', textdata)         # strips out numbers
 
-
 textdata = gsub("RT", " ", textdata) #remove any instances of "RT" as this isn't a real word
 
 # there are some orphaned "s" on their own created previous cleanings
@@ -261,7 +183,6 @@ textdata = gsub("^s\\s", " ", textdata) #remove any single "s" followed by a spa
 #strip out emoji residue, anything starting with edUAU
 #This cleans up leftovers like edUAUBDedUBUA, edUAUBDedUBUU and edUAUBDedUBUDedUAUBCedUBFUBB
 textdata = gsub('edUAU(\\w{1,130})\\b', '', textdata) #remove any words upto 130 chars long starting "edUAU"
-
 
 # convert textdata to dataframe so can transfer it to corpus later
 textdataframe <- as.data.frame(textdata)
@@ -286,8 +207,6 @@ wordtable <- table(words)
 #store totals in a data frame
 worddf <- as.data.frame(wordtable, stringsAsFactors=FALSE)
 
-
-
 #remove stop words
 #read in a list of stop words
 stopwords <- read_file("stop-words.txt", locale = default_locale())
@@ -307,8 +226,6 @@ worddf <- worddf[-index,]
 #re-index
 row.names(worddf) <- 1:nrow(worddf)
 
-
-
 # rows 476 - 673 are all partial link text so discard these values
 index <- 476:673
 worddf <- worddf[-index,]
@@ -318,15 +235,12 @@ row.names(worddf) <- 1:nrow(worddf)
 #correct micro$oft as the $ got stripped out
 worddf[634,1] <- "micro$ofts"
 
-
-#hmmm
 #looking at the worddf the longest word tweeted was
 worddf[1028,1]
 #tweet containing the longest word
 confdaytweets[113,1]
 
 # Now score each word on whether it is positive or negative.
-
 library(plyr)
 # ddply() takes a dataframe, does stuff to it, returns a dataframe
 
@@ -344,7 +258,6 @@ scoredwords <- ddply(worddf, "words", function(x) {
   
   # TRUE/FALSE is treated as 1/0 by sum(), so add up the score
   score = sum(pos.match) - sum(neg.match)
-  
   })
 
 
@@ -449,7 +362,6 @@ findFreqTerms(dtm, lowfreq = 5, highfreq = 100)
 # second most frequent word typed 118 times was "talk"
 
 
-?findFreqTerms
 
 # Start a new plot frame
 plot.new()
