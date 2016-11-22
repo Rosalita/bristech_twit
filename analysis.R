@@ -60,15 +60,8 @@ setwd("C:/Dev/git/bristech_twit")
 # load dataframe object containing tweets to perform analysis on
 bristweets <- readRDS("bristweets.Rda")
 
-# Conference day was 03-11-2016 so create a subset of conference day tweets
-#separate out the date from the tweet creation time stamp
-justdate <- as.Date(bristweets$created)
-
-#bind date onto the dataframe
-bristweets <- cbind(bristweets, justdate)
-
 # subset the data to identify tweets created on 03-11-2016, the day of the conference. 
-index <- which(bristweets$justdate == "2016-11-03")
+index <- which(as.Date(bristweets$created) == "2016-11-03")
 confdaytweets <- bristweets[index,]
 
 # There were 663 Tweets on the day of the conference
@@ -184,19 +177,14 @@ textdata = gsub("^s\\s", " ", textdata) #remove any single "s" followed by a spa
 #This cleans up leftovers like edUAUBDedUBUA, edUAUBDedUBUU and edUAUBDedUBUDedUAUBCedUBFUBB
 textdata = gsub('edUAU(\\w{1,130})\\b', '', textdata) #remove any words upto 130 chars long starting "edUAU"
 
+#convert all text to lowercase
+textdata <- tolower(textdata)
+
 # convert textdata to dataframe so can transfer it to corpus later
 textdataframe <- as.data.frame(textdata)
 
-# now convert all tweet text to vector so can split it up on each word
-vectortext <- as.character(textdataframe[,1])
-
-# convert text in the vector to all lowercase
-vectortext <- tolower(vectortext)
-
-# extract the words by splitting up the vector
-words <- unlist(strsplit(vectortext, " "))
-
-# to do remove blanks "" and plot a barchart of words
+# extract the words by splitting up the text data
+words <- unlist(strsplit(textdata, " "))
 
 # remove blank ""'s in the vector of words
 words <- words[words != ""]
@@ -293,9 +281,7 @@ p <- ggplot(popularwords, aes(x=reorder(words, -freq),y=freq, fill=popularwords$
 
 p +  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))
 
-table(scored$words)
 
-?ylim
 # The main structure for managing text is tm package is a corpus. 
 # A Corpus represents a collection of text documents.
 # Vcorpus is a volatile corpus, this is an R object held in memory if you delete it all your text is gone
