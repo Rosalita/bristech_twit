@@ -278,12 +278,14 @@ popularwords <- scoredwords[popularwordindex,]
 
 #plot word frequency
 p <- ggplot(popularwords, aes(x=reorder(words, -freq),y=freq, fill=popularwords$sentiment )) +
-  geom_bar(stat="identity")+  
+  geom_bar(stat="identity")+ 
+  coord_cartesian(xlim = NULL, ylim = c(0,130), expand = TRUE)+
+  annotate("text", x = 18, y = 125, label = "'bristech' frequency = 652 (extends off chart)")+
   labs(x="Popular Words (5+ mentions)", y="Frequency", fill="Sentiment")+
  # scale_x_discrete(trans ="reverse")+
   scale_fill_manual(breaks = c("-1", "0", "1"),
                     labels = c("Negative", "Neutral", "Positive"),
-                    values = c("#E69F00", "#56B4E9", "#009E73"),
+                    values = c("#FF0000", "#d3d3d3", "#00ff00"),
                     limits = c(-1, 0, 1))+   
   ggtitle("Tweeted Words by Frequency and Sentiment")
  # coord_flip()
@@ -291,8 +293,9 @@ p <- ggplot(popularwords, aes(x=reorder(words, -freq),y=freq, fill=popularwords$
 
 p +  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))
 
+table(scored$words)
 
-
+?ylim
 # The main structure for managing text is tm package is a corpus. 
 # A Corpus represents a collection of text documents.
 # Vcorpus is a volatile corpus, this is an R object held in memory if you delete it all your text is gone
