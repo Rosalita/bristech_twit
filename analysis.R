@@ -531,4 +531,111 @@ wordcloud(tweetcorpus,
             "#200569"))
 
 
+# plot tweets by time and sentiment
+
+
+#bind a column on to conference day tweets to hold key times to divide the plot
+keytimes <- NA
+confdaytweets <- cbind(confdaytweets, keytimes)
+
+#indicate first line is at 08:00 am
+confdaytweets[1,18] = "2016-11-03 08:30:00 GMT" # start of registration and networking
+confdaytweets[2,18] = "2016-11-03 09:00:00 GMT" # end of registration
+confdaytweets[3,18] = "2016-11-03 09:15:00 GMT" # end of welcome
+confdaytweets[4,18] = "2016-11-03 09:30:00 GMT" # talk 1 start
+confdaytweets[5,18] = "2016-11-03 10:20:00 GMT" # talk 1 end
+confdaytweets[6,18] = "2016-11-03 10:30:00 GMT" # talk 2 start
+confdaytweets[7,18] = "2016-11-03 11:20:00 GMT" # talk 2 end
+confdaytweets[8,18] = "2016-11-03 11:50:00 GMT" # talk 3 start
+confdaytweets[9,18] = "2016-11-03 12:40:00 GMT" # talk 3 end
+confdaytweets[10,18] = "2016-11-03 13:40:00 GMT" # talk 4 start
+confdaytweets[11,18] = "2016-11-03 14:30:00 GMT" # talk 4 end
+confdaytweets[12,18] = "2016-11-03 14:40:00 GMT" # talk 5 start
+confdaytweets[13,18] = "2016-11-03 15:30:00 GMT" # talk 5 end
+confdaytweets[14,18] = "2016-11-03 15:55:00 GMT" # talk 6 start
+confdaytweets[15,18] = "2016-11-03 16:45:00 GMT" # talk 6 end
+confdaytweets[16,18] = "2016-11-03 17:00:00 GMT" # closing goodbye end
+
+# add time stamps for mid points so some labels can be plotted in the middle of rects
+confdaytweets[17,18] = "2016-11-03 08:45:00 GMT" # mid registration
+confdaytweets[18,18] = "2016-11-03 09:07:30 GMT" # mid welcome
+confdaytweets[19,18] = "2016-11-03 09:55:00 GMT" # mid talk 1
+confdaytweets[20,18] = "2016-11-03 10:55:00 GMT" # mid talk 2
+confdaytweets[21,18] = "2016-11-03 12:15:00 GMT" # mid talk 3
+confdaytweets[22,18] = "2016-11-03 14:05:00 GMT" # mid talk 4
+confdaytweets[23,18] = "2016-11-03 15:05:00 GMT" # mid talk 5
+confdaytweets[24,18] = "2016-11-03 16:20:00 GMT" # mid talk 6
+confdaytweets[25,18] = "2016-11-03 16:52:30 GMT" # mid closing goodbye
+
+# add time stamps for xlim on plots
+confdaytweets[31,19] = "2016-10-21 05:30:00 GMT"
+confdaytweets[32,19] = "2016-10-22 01:30:00 GMT"  
+
+# convert location of lines to dates to POSIXct
+confdaytweets$keytimes <- as.POSIXct(confdaytweets$keytimes, tz="GMT")
+
+str(confdaytweets$keytimes)
+
+
+# plot tweets onthe day of the conference by time and sentiment
+plot <- ggplot(confdaytweets, aes(x = created, y = sentiment_score))+
+  geom_jitter(alpha = 0.4)+ 
+  ggtitle("Tweets by Time and Positivity for #bristech")+
+  labs(x="Time", y="Positivity Index")+
+  scale_x_datetime(date_breaks = "1 hour", date_labels = "%H:%M")+ #use scale_*_datetime for POSIXct variables
+  scale_y_continuous(breaks = c(-3,-2,-1,0,1,2,3,4)) +
+  
+  # Registration 
+  annotate("rect", xmin=confdaytweets[1,18], xmax=confdaytweets[2,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
+  # Registration  Label
+  annotate("label", x=confdaytweets[1,18], y=8, label= "Registration\n& Networking", color="black", fill ="#4285F4", alpha=0.3) + 
+  
+  # Welcome
+  annotate("rect", xmin=confdaytweets[2,18], xmax=confdaytweets[3,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
+  # welcome Label
+  annotate("label", x=confdaytweets[2,18], y=-6, label= "Welcome", color="black", fill ="#EA4335", alpha=0.3)+ 
+  
+  # talk 1
+  annotate("rect", xmin=confdaytweets[4,18], xmax=confdaytweets[5,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
+  # talk 1 Label
+  annotate("label", x=confdaytweets[4,18], y=8, label= "Talk 1", color="black", fill ="#FBBC05", alpha=0.3)+  
+  
+  # talk 2
+  annotate("rect", xmin=confdaytweets[6,18], xmax=confdaytweets[7,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
+  # talk 2 Label
+  annotate("label", x=confdaytweets[6,18], y=-6, label= "Talk 2", color="black", fill ="#4285F4", alpha=0.3) + 
+  
+  # talk 3
+  annotate("rect", xmin=confdaytweets[8,18], xmax=confdaytweets[9,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
+  # talk 3 Label
+  annotate("label", x=confdaytweets[8,18], y=8, label= "Talk 3", color="black", fill ="#EA4335", alpha=0.3) + 
+  
+  # talk 4
+  annotate("rect", xmin=confdaytweets[10,18], xmax=confdaytweets[11,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
+  # talk 4 Label
+  annotate("label", x=confdaytweets[10,18], y=-6, label= "Talk 4", color="black", fill ="#FBBC05", alpha=0.3) +
+  
+  # Talk 5
+  annotate("rect", xmin=confdaytweets[12,18], xmax=confdaytweets[13,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
+  # Talk 5 Label
+  annotate("label", x=confdaytweets[12,18], y=8, label= "Talk 5", color="black", fill ="#4285F4", alpha=0.3) +
+  
+  # Talk 6
+  annotate("rect", xmin=confdaytweets[14,18], xmax=confdaytweets[15,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
+  # Talk 6 Label
+  annotate("label", x=confdaytweets[14,18], y=-6, label= "Talk 6", color="black", fill ="#EA4335", alpha=0.3) + 
+  
+  # Goodbye
+  annotate("rect", xmin=confdaytweets[15,18], xmax=confdaytweets[16,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
+  # Goodbye Label
+  annotate("label", x=confdaytweets[15,18], y=8, label= "Closing\nGoodbye", color="black", fill ="#FBBC05", alpha=0.3) 
+
+
+
+plot
+
+plot + geom_smooth(method ="loess", span=0.1, colour="yellow" )
+
+
+
 
