@@ -282,7 +282,93 @@ p <- ggplot(popularwords, aes(x=reorder(words, -freq),y=freq, fill=popularwords$
 p +  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))
 
 
-# The main structure for managing text is tm package is a corpus. 
+# extract just the tweet text 
+text <- confdaytweets$text
+
+# initialise some global variables
+positivity <- NULL
+negativity <- NULL
+
+# Now score the text of each tweet based on count of positive and negative words used.
+
+score.sentiment = function(sentences, good_text, bad_text, .progress='none')
+{
+  require(plyr)
+  require(stringr)
+
+  scores = laply(sentences, function(sentence, good_text, bad_text) {
+    
+    # clean up each sentence with R's regex-driven global substitute, gsub():
+    sentence = gsub('[[:punct:]]', '', sentence)  # strips out punctuation
+    sentence = gsub('[[:cntrl:]]', '', sentence)  # strips out control characters, like \n or \r 
+    sentence = gsub('\\d+', '', sentence)         # strips out numbers
+    sentence <- iconv(sentence, to='UTF-8')       # convert to UTF8
+    sentence = tolower(sentence)                  # converts all text to lower case     
+    word.list = str_split(sentence, '\\s+')       # split into a list of words
+    words = unlist(word.list)                     # make sure words is a vector, not a list
+    
+    # compare our words to the dictionaries of positive & negative terms
+    pos.matches = match(words, good_text)
+    neg.matches = match(words, bad_text)
+    
+    # match() returns the position of the matched term or NA
+    # convert matches to TRUE/FALSE instead
+    pos.matches = !is.na(pos.matches)
+    neg.matches = !is.na(neg.matches)
+    
+    # TRUE/FALSE is treated as 1/0 by sum(), so add up the score
+    score = sum(pos.matches) - sum(neg.matches)
+    
+    #if any positive matches
+    if (any(pos.matches)){
+      pos.matches = match(words, good_text)
+      pos.words = good_text[pos.matches] # apply index of pos matches to get pos words
+      pos.words = pos.words[!is.na(pos.words)] # remove any NA values
+      # append positive words to global positivity variable
+      positivity <<- append(positivity, pos.words)
+    }
+    
+    # identify the words which matched positively or negatively
+    # maybe use <<- to set pos.words and neg.words as global variables?
+    if (any(neg.matches)){
+      neg.matches = match(words, bad_text)
+      neg.words = bad_text[neg.matches] # apply index of neg matches to get neg words
+      neg.words = neg.words[!is.na(neg.words)] # remove any NA values 
+      #append negative words to global negativity variable
+      negativity <<- append(negativity, neg.words)
+    }
+    
+    return(score)
+  }, good_text, bad_text, .progress=.progress )
+  
+  scores.df = data.frame(score=scores, text=sentences)
+  return(scores.df)
+}
+
+# Call the score sentiment function and return a data frame
+feelings <- score.sentiment(text, good_text, bad_text, .progress='text')
+
+sentiment_score <- feelings$score
+
+confdaytweets <- cbind(confdaytweets,sentiment_score)
+
+#tally up all the positive and negative words in a table.
+ptable <- table(positivity)
+ntable <- table(negativity)
+
+# Word clouds
+
+library(tm)
+library(wordcloud)
+
+# make a corpus for positive and negative words
+pcorp = Corpus(VectorSource(positivity))
+ncorp = Corpus(VectorSource(negativity))
+
+#pcorp <- tm_map(pcorp, PlainTextDocument)
+#ncorp <- tm_map(ncorp, PlainTextDocument)
+
+# The main structure for managing text in tm package is a corpus. 
 # A Corpus represents a collection of text documents.
 # Vcorpus is a volatile corpus, this is an R object held in memory if you delete it all your text is gone
 # Pcorpus is a Permanent corpus, this is Permanent Corpus the text is stored outside of R (e.g. in a database)
@@ -293,6 +379,74 @@ p +  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))
 # DataframeSource() gets text from a data frame
 
 # to make a corpus, use Corpus() on one of these source functions
+
+
+# Start a new plot frame
+plot.new()
+
+# Set the display a 2 by 2 grid
+par(mfrow=c(1,2))
+
+# Outer Margins
+par(oma=c(0.5,0.1,0.5,0.1))
+# Margins, bottom, left, top, right (default is  c(5,4,4,2))
+par(mar=c(0.1,3,0.1,3))
+
+# par(mar=c(9.3,4.1,4.1,2.1))
+# par(mfrow=c(2,2))
+# par(cex.axis=1.3)
+# par(cex.main=1.3)
+
+
+# Positive Wordcloud
+wordcloud(pcorp, 
+          scale=c(2,0.6), 
+          max.words=200,
+          min.freq=-1,
+          random.order=FALSE, 
+          rot.per=0.2, 
+          use.r.layout=FALSE, 
+          # Nice custom blue to green sequential colours
+          colors = c(#"#ACF8A5",
+            #"#8DE99B",
+            #"#77DB9D", 
+            "#63CDA4", 
+            "#50BFAE",
+            "#3FA7B1", 
+            "#307EA2", 
+            "#235594", 
+            "#172F86",
+            "#100E78",
+            "#200569"))
+
+text(x=-0.03, y=0.5, "Positive Words", srt=90)
+
+
+# Negative Wordcloud
+wordcloud(ncorp, 
+          scale=c(2,0.6), 
+          max.words=200, 
+          min.freq=-1,
+          random.order=FALSE, 
+          rot.per=0.2, 
+          use.r.layout=FALSE, 
+          # Nice custom yellow to red colours
+          colors = c(#"#FFDE6A",
+            #"#F4C55C",
+            "#E9AC4F", 
+            "#DF9343", 
+            "#D47A37",
+            "#CA612D", 
+            "#BF4A23", 
+            "#B4331A", 
+            "#AA1D11",
+            "#9F0A0C"))
+
+
+text(x=1.03, y=0.5, "Negative Words", srt=270)
+
+
+
 
 # make a corpus of all tweet text
 tweetcorpus <- Corpus(DataframeSource(textdataframe))
