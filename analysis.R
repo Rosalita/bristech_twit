@@ -505,32 +505,6 @@ findFreqTerms(dtm, lowfreq = 5, highfreq = 100)
 # second most frequent word typed 118 times was "talk"
 
 
-
-# Start a new plot frame
-plot.new()
-
-# Wordcloud
-wordcloud(tweetcorpus, 
-          scale=c(2,0.6), 
-          max.words=2000,
-          min.freq=2,
-          random.order=FALSE, 
-          rot.per=0.2, 
-          use.r.layout=FALSE, 
-          # Nice custom blue to green sequential colours
-          colors = c(#"#ACF8A5",
-            #"#8DE99B",
-            #"#77DB9D", 
-            "#63CDA4", 
-            "#50BFAE",
-            "#3FA7B1", 
-            "#307EA2", 
-            "#235594", 
-            "#172F86",
-            "#100E78",
-            "#200569"))
-
-
 # plot tweets by time and sentiment
 
 
@@ -588,47 +562,47 @@ plot <- ggplot(confdaytweets, aes(x = created, y = sentiment_score))+
   # Registration 
   annotate("rect", xmin=confdaytweets[1,18], xmax=confdaytweets[2,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
   # Registration  Label
-  annotate("label", x=confdaytweets[1,18], y=8, label= "Registration\n& Networking", color="black", fill ="#4285F4", alpha=0.3) + 
+  annotate("label", x=confdaytweets[17,18], y=8, label= "Registration", color="black", fill ="#4285F4", alpha=0.3) + 
   
   # Welcome
   annotate("rect", xmin=confdaytweets[2,18], xmax=confdaytweets[3,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
   # welcome Label
-  annotate("label", x=confdaytweets[2,18], y=-6, label= "Welcome", color="black", fill ="#EA4335", alpha=0.3)+ 
+  annotate("label", x=confdaytweets[18,18], y=-6, label= "Welcome", color="black", fill ="#EA4335", alpha=0.3)+ 
   
   # talk 1
   annotate("rect", xmin=confdaytweets[4,18], xmax=confdaytweets[5,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
   # talk 1 Label
-  annotate("label", x=confdaytweets[4,18], y=8, label= "Talk 1", color="black", fill ="#FBBC05", alpha=0.3)+  
+  annotate("label", x=confdaytweets[19,18], y=8, label= "Talk 1", color="black", fill ="#FBBC05", alpha=0.3)+  
   
   # talk 2
   annotate("rect", xmin=confdaytweets[6,18], xmax=confdaytweets[7,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
   # talk 2 Label
-  annotate("label", x=confdaytweets[6,18], y=-6, label= "Talk 2", color="black", fill ="#4285F4", alpha=0.3) + 
+  annotate("label", x=confdaytweets[20,18], y=-6, label= "Talk 2", color="black", fill ="#4285F4", alpha=0.3) + 
   
   # talk 3
   annotate("rect", xmin=confdaytweets[8,18], xmax=confdaytweets[9,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
   # talk 3 Label
-  annotate("label", x=confdaytweets[8,18], y=8, label= "Talk 3", color="black", fill ="#EA4335", alpha=0.3) + 
+  annotate("label", x=confdaytweets[21,18], y=8, label= "Talk 3", color="black", fill ="#EA4335", alpha=0.3) + 
   
   # talk 4
   annotate("rect", xmin=confdaytweets[10,18], xmax=confdaytweets[11,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
   # talk 4 Label
-  annotate("label", x=confdaytweets[10,18], y=-6, label= "Talk 4", color="black", fill ="#FBBC05", alpha=0.3) +
+  annotate("label", x=confdaytweets[22,18], y=-6, label= "Talk 4", color="black", fill ="#FBBC05", alpha=0.3) +
   
   # Talk 5
   annotate("rect", xmin=confdaytweets[12,18], xmax=confdaytweets[13,18],ymin=-5, ymax=7, alpha=0.3, fill="#4285F4")+
   # Talk 5 Label
-  annotate("label", x=confdaytweets[12,18], y=8, label= "Talk 5", color="black", fill ="#4285F4", alpha=0.3) +
+  annotate("label", x=confdaytweets[23,18], y=8, label= "Talk 5", color="black", fill ="#4285F4", alpha=0.3) +
   
   # Talk 6
   annotate("rect", xmin=confdaytweets[14,18], xmax=confdaytweets[15,18],ymin=-5, ymax=7, alpha=0.3, fill="#EA4335")+
   # Talk 6 Label
-  annotate("label", x=confdaytweets[14,18], y=-6, label= "Talk 6", color="black", fill ="#EA4335", alpha=0.3) + 
+  annotate("label", x=confdaytweets[24,18], y=-6, label= "Talk 6", color="black", fill ="#EA4335", alpha=0.3) + 
   
   # Goodbye
   annotate("rect", xmin=confdaytweets[15,18], xmax=confdaytweets[16,18],ymin=-5, ymax=7, alpha=0.3, fill="#FBBC05")+
   # Goodbye Label
-  annotate("label", x=confdaytweets[15,18], y=8, label= "Closing\nGoodbye", color="black", fill ="#FBBC05", alpha=0.3) 
+  annotate("label", x=confdaytweets[25,18], y=8, label= "Goodbye", color="black", fill ="#FBBC05", alpha=0.3) 
 
 
 
@@ -636,6 +610,10 @@ plot
 
 plot + geom_smooth(method ="loess", span=0.1, colour="yellow" )
 
+
+# Top 3 most Favourited tweets
+index <- which(confdaytweets$favoriteCount > 30)
+top3 <- confdaytweets[index,]
 
 
 
