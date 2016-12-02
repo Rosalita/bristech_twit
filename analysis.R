@@ -617,3 +617,115 @@ top3 <- confdaytweets[index,]
 
 
 
+# try extract platform data for conference day tweets
+# Start by binding a column named 'platform' containing NA onto dataframe which will be used to hold this data
+platform <- NA
+confdaytweets <- cbind(confdaytweets, platform)
+
+
+#Tweet Lanes is an android apps so include it in android sources
+index <- grep("Twitter for Android|TweetCaster for Android|Echofon  Android|Tweet Lanes", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "Android"
+
+
+index <- grep("Twitter for iPhone", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "iPhone"
+
+index <- grep("Tweetbot for i??S", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "ios"
+
+index <- grep("Twitter for iPad", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "iPad"
+
+index <- grep("Twitter for Mac", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "Mac"
+
+index <- grep("Mobile Web", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "Mobile Web"
+
+index <- grep("Twitter Web Client", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "Web Client"
+
+index <- grep("Twitter for Windows", confdaytweets$statusSource)
+confdaytweets$platform[index] <- "Windows"
+
+# Any values still set to NA change their platform to 'Unknown' 
+index <- which(is.na(confdaytweets$platform))
+confdaytweets$platform[index] <- "Unknown"
+
+
+
+
+# Tweet Frequency polygon
+
+plot2 <- ggplot(confdaytweets, aes(x =confdaytweets$created)) +
+  ggtitle("Tweet Count for #bristech")+
+  scale_x_datetime(date_breaks = "2 hour", date_labels = "%H:%M")+
+  
+  scale_y_continuous(breaks = seq(0,120, by=10))+
+  labs(x="Time", y="Tweet Count", colour ="Tweets by platform")+
+  #                xlim(confdaytweets[31,19],confdaytweets[32,19])+
+  geom_freqpoly(binwidth = 1000, aes(x=confdaytweets$created, colour="All Platforms"))+
+  scale_color_manual(values=c("#000000", "#009939", "#3369e8", "#d50f25",
+                              "#eeb211", "#00FFFF","#ff00ff", "#ffff00", "#00ff00"))+
+  
+  
+  
+  # Registration 
+  annotate("rect", xmin=confdaytweets[1,18], xmax=confdaytweets[2,18],ymin=0, ymax=75, alpha=0.3, fill="#4285F4")+
+  # Registration  Label
+  annotate("label", x=confdaytweets[1,18], y=80, label= "Registration", color="black", fill ="#4285F4", alpha=0.3) + 
+  
+  # Welcome
+  annotate("rect", xmin=confdaytweets[2,18], xmax=confdaytweets[3,18],ymin=0, ymax=75, alpha=0.3, fill="#EA4335")+
+  # welcome Label
+  annotate("label", x=confdaytweets[18,18], y=-6, label= "Welcome", color="black", fill ="#EA4335", alpha=0.3)+ 
+  
+  # talk 1
+  annotate("rect", xmin=confdaytweets[4,18], xmax=confdaytweets[5,18],ymin=0, ymax=75, alpha=0.3, fill="#FBBC05")+
+  # talk 1 Label
+  annotate("label", x=confdaytweets[19,18], y=80, label= "Talk 1", color="black", fill ="#FBBC05", alpha=0.3)+  
+  
+  # talk 2
+  annotate("rect", xmin=confdaytweets[6,18], xmax=confdaytweets[7,18],ymin=0, ymax=75, alpha=0.3, fill="#4285F4")+
+  # talk 2 Label
+  annotate("label", x=confdaytweets[20,18], y=-6, label= "Talk 2", color="black", fill ="#4285F4", alpha=0.3) + 
+  
+  # talk 3
+  annotate("rect", xmin=confdaytweets[8,18], xmax=confdaytweets[9,18],ymin=0, ymax=75, alpha=0.3, fill="#EA4335")+
+  # talk 3 Label
+  annotate("label", x=confdaytweets[21,18], y=80, label= "Talk 3", color="black", fill ="#EA4335", alpha=0.3) + 
+  
+  # talk 4
+  annotate("rect", xmin=confdaytweets[10,18], xmax=confdaytweets[11,18],ymin=0, ymax=75, alpha=0.3, fill="#FBBC05")+
+  # talk 4 Label
+  annotate("label", x=confdaytweets[22,18], y=-6, label= "Talk 4", color="black", fill ="#FBBC05", alpha=0.3) +
+  
+  # Talk 5
+  annotate("rect", xmin=confdaytweets[12,18], xmax=confdaytweets[13,18],ymin=0, ymax=75, alpha=0.3, fill="#4285F4")+
+  # Talk 5 Label
+  annotate("label", x=confdaytweets[23,18], y=80, label= "Talk 5", color="black", fill ="#4285F4", alpha=0.3) +
+  
+  # Talk 6
+  annotate("rect", xmin=confdaytweets[14,18], xmax=confdaytweets[15,18],ymin=0, ymax=75, alpha=0.3, fill="#EA4335")+
+  # Talk 6 Label
+  annotate("label", x=confdaytweets[24,18], y=-6, label= "Talk 6", color="black", fill ="#EA4335", alpha=0.3) + 
+  
+  # Goodbye
+  annotate("rect", xmin=confdaytweets[15,18], xmax=confdaytweets[16,18],ymin=0, ymax=75, alpha=0.3, fill="#FBBC05")+
+  # Goodbye Label
+  annotate("label", x=confdaytweets[25,18], y=80, label= "Goodbye", color="black", fill ="#FBBC05", alpha=0.3) 
+
+
+
+plot2 
+
+
+# as well as total show quantity of tweets for each platform
+plot2 + geom_freqpoly(binwidth = 1000, aes(x =confdaytweets$created, colour=platform))
+
+
+
+
+
+
